@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  fcm-server:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=switchback.proxy.rlwy.net
+      - REDIS_PORT=14760
+      - REDIS_PASSWORD=AJFZvlgmJBkEFBEYrjimvnVUvkvWlkFB
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped

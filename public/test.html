@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FCM Token Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+            touch-action: manipulation;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            color: #633AE5;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .btn {
+            background: #633AE5;
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>FCM Token Test</h1>
+        
+        <button class="btn" id="getTokenBtn">Get FCM Token</button>
+        <button class="btn" id="saveTokenBtn">Save FCM Token</button>
+        
+        <div class="result" id="result">
+            Click a button to test FCM token functionality
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('getTokenBtn').addEventListener('click', function() {
+            try {
+                if (window.Android && typeof window.Android.getFCMToken === 'function') {
+                    document.getElementById('result').textContent = 'Getting FCM token...';
+                    // Android will display the token in a toast
+                    window.Android.getFCMToken();
+                    document.getElementById('result').textContent = 'FCM token requested! Check Android toast message.';
+                } else {
+                    document.getElementById('result').textContent = 'Android.getFCMToken() is not available';
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        });
+
+        document.getElementById('saveTokenBtn').addEventListener('click', function() {
+            try {
+                if (window.Android && typeof window.Android.saveCurrentFCMToken === 'function') {
+                    document.getElementById('result').textContent = 'Saving FCM token...';
+                    // Android will save the token and display a toast
+                    window.Android.saveCurrentFCMToken();
+                    document.getElementById('result').textContent = 'FCM token save requested! Check Android toast message.';
+                } else {
+                    document.getElementById('result').textContent = 'Android.saveCurrentFCMToken() is not available';
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>

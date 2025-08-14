@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FCM Token Manager</title>
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Poppins Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+        }
+
+        body {
+            background: #f8f9fa;
+            min-height: 100vh;
+            color: #333;
+            touch-action: manipulation;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .header {
+            background: #633AE5;
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 1.3em;
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 0.8em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            padding: 10px 5px;
+            background: white;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat-card {
+            padding: 5px 3px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #633AE5;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.7em;
+            margin-top: 2px;
+            font-weight: 400;
+        }
+
+        .menu {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0;
+            box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3px;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.65em;
+            font-weight: 500;
+        }
+
+        .menu-item.active {
+            color: #633AE5;
+        }
+
+        .material-icons {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        .content {
+            padding: 10px;
+            padding-bottom: 70px; /* Space for bottom menu */
+        }
+
+        .btn {
+            background: #633AE5;
+            color: white;
+            border: none;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            width: 100%;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+        }
+
+        .btn-icon {
+            margin-right: 8px;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .tokens-container {
+            margin-top: 10px;
+        }
+
+        .token-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .token-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .token-date {
+            color: #666;
+            font-size: 0.7em;
+            display: flex;
+            align-items: center;
+        }
+
+        .token-date .material-icons {
+            font-size: 14px;
+            margin-right: 3px;
+        }
+
+        .token-text {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7em;
+            word-break: break-all;
+            border: 1px solid #eee;
+        }
+
+        .token-preview {
+            color: #633AE5;
+            font-weight: bold;
+        }
+
+        .token-actions {
+            display: flex;
+            margin-top: 8px;
+            gap: 6px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 6px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.75em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+        }
+
+        .action-btn .material-icons {
+            font-size: 14px;
+            margin-right: 3px;
+        }
+
+        .copy-btn {
+            background: #633AE5;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-weight: 300;
+        }
+
+        .message {
+            padding: 8px;
+            border-radius: 6px;
+            margin: 8px 0;
+            font-size: 0.8em;
+            text-align: center;
+            font-weight: 400;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .info {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 100%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #633AE5;
+            display: flex;
+            align-items: center;
+        }
+
+        .modal-title .material-icons {
+            margin-right: 8px;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: #333;
+            font-size: 0.8em;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-label .material-icons {
+            font-size: 16px;
+            margin-right: 3px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.8em;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #633AE5;
+        }
+
+        .form-textarea {
+            min-height: 60px;
+            resize: none;
+        }
+
+        .notification-type {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .notification-type label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-weight: 400;
+        }
+
+        .notification-type input[type="radio"]:checked + span {
+            color: #633AE5;
+            font-weight: 500;
+        }
+
+        .token-checkbox {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .select-all-container {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .select-all-container input {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+        }
+
+        .token-list-modal {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .token-item-modal {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .token-preview-modal {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7em;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-actions .btn {
+            margin: 0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Hide scrollbar but allow scrolling */
+        .token-list-modal::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .token-list-modal {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FCM Token Manager</h1>
+            <p>Manage Firebase Cloud Messaging tokens</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalTokens">0</div>
+                <div class="stat-label">Total Tokens</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeTokens">0</div>
+                <div class="stat-label">Active Tokens</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="lastUpdated">-</div>
+                <div class="stat-label">Updated</div>
+            </div>
+        </div>
+
+        <div id="message" class="message" style="display: none;"></div>
+
+        <div class="content">
+            <!-- Home Tab -->
+            <div id="home-tab" class="tab-content active">
+                <button class="btn" onclick="loadTokens()">
+                    <i class="material-icons btn-icon">refresh</i> Refresh Tokens
+                </button>
+                <button class="btn" onclick="showSendNotificationModal()">
+                    <i class="material-icons btn-icon">notifications</i> Send Notification
+                </button>
+                
+                <div class="tokens-container" id="tokensContainer">
+                    <div class="loading">Loading tokens...</div>
+                </div>
+            </div>
+
+            <!-- List Tab -->
+            <div id="list-tab" class="tab-content">
+                <button class="btn" onclick="loadTokenList()">
+                    <i class="material-icons btn-icon">list</i> View All Tokens
+                </button>
+                <button class="btn" onclick="removeDuplicates()">
+                    <i class="material-icons btn-icon">filter_list</i> Remove Duplicates
+                </button>
+                
+                <div class="tokens-container" id="tokenListContainer">
+                    <div class="loading">Select "View All Tokens" to see the list</div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-content">
+                <button class="btn btn-danger" onclick="clearAllTokens()">
+                    <i class="material-icons btn-icon">delete_forever</i> Clear All Tokens
+                </button>
+                
+                <div class="token-item" style="margin-top: 20px;">
+                    <div class="token-header">
+                        <div>About</div>
+                    </div>
+                    <div class="token-text" style="background: white; border: none;">
+                        <p>FCM Token Manager for Fanzy Shop</p>
+                        <p style="margin-top: 10px;">Use this app to manage your Firebase Cloud Messaging tokens and send notifications to your users.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Menu -->
+    <div class="menu">
+        <a href="#" class="menu-item active" onclick="switchTab('home')">
+            <i class="material-icons">home</i>
+            <div>Home</div>
+        </a>
+        <a href="#" class="menu-item" onclick="switchTab('list')">
+            <i class="material-icons">view_list</i>
+            <div>List</div>
+        </a>
+        <a href="#" class="menu-item" onclick="switchTab('settings')">
+            <i class="material-icons">settings</i>
+            <div>Settings</div>
+        </a>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="material-icons">notifications_active</i>
+                    Send Notification
+                </div>
+                <span class="close" onclick="closeNotificationModal()">&times;</span>
+            </div>
+            
+            <div class="notification-type">
+                <label>
+                    <input type="radio" name="notificationType" value="all" checked>
+                    <span>Send to All Tokens</span>
+                </label>
+                <label>
+                    <input type="radio" name="notificationType" value="specific">
+                    <span>Send to Specific Tokens</span>
+                </label>
+            </div>
+
+            <div id="specificTokensSection" style="display: none;">
+                <div class="select-all-container">
+                    <input type="checkbox" id="selectAllTokens" onchange="toggleSelectAll()">
+                    <strong>Select All Tokens</strong>
+                </div>
+                <div class="token-list-modal" id="tokenListModal">
+                    <!-- Token checkboxes will be populated here -->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="material-icons">title</i>
+                    Notification Title
+                </label>
+                <input type="text" id="notificationTitle" class="form-input" placeholder="Enter title..." value="Fanzy Shop">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="material-icons">message</i>
+                    Notification Message
+                </label>
+                <textarea id="notificationMessage" class="form-input form-textarea" placeholder="Enter message..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="material-icons">link</i>
+                    Deep Link URL (Optional)
+                </label>
+                <input type="url" id="notificationUrl" class="form-input" placeholder="https://www.fanzygame.shop/...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="material-icons">image</i>
+                    Image URL (Optional)
+                </label>
+                <input type="url" id="notificationImage" class="form-input" placeholder="https://example.com/image.jpg">
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn" onclick="sendNotification()">
+                    <i class="material-icons btn-icon">send</i>
+                    Send
+                </button>
+                <button class="btn btn-danger" onclick="closeNotificationModal()">
+                    <i class="material-icons btn-icon">close</i>
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTokens = [];
+
+        // Load tokens on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTokens();
+        });
+
+        function switchTab(tab) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tab + '-tab').classList.add('active');
+            
+            // Update menu items
+            document.querySelectorAll('.menu-item').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Find the clicked menu item and make it active
+            event.currentTarget.classList.add('active');
+            
+            // Prevent default link behavior
+            event.preventDefault();
+        }
+
+        async function loadTokens() {
+            try {
+                showMessage('Loading tokens...', 'info');
+                
+                const response = await fetch('/api/tokens');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentTokens = data.tokens;
+                    displayTokens(data.tokens);
+                    updateStats(data.count);
+                    showMessage(`Loaded ${data.count} tokens successfully!`, 'success');
+                } else {
+                    showMessage('Failed to load tokens: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error loading tokens: ' + error.message, 'error');
+            }
+        }
+
+        async function loadTokenList() {
+            try {
+                showMessage('Loading token list...', 'info');
+                
+                const response = await fetch('/api/token-list');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayTokenList(data.tokens);
+                    showMessage(`Loaded ${data.tokens.length} tokens from list!`, 'success');
+                } else {
+                    showMessage('Failed to load token list: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error loading token list: ' + error.message, 'error');
+            }
+        }
+
+        function displayTokens(tokens) {
+            const container = document.getElementById('tokensContainer');
+            
+            if (tokens.length === 0) {
+                container.innerHTML = '<div class="loading">No tokens found</div>';
+                return;
+            }
+
+            container.innerHTML = tokens.map(token => `
+                <div class="token-item">
+                    <div class="token-header">
+                        <div class="token-date">
+                            <i class="material-icons">event</i>
+                            ${token.date}
+                        </div>
+                    </div>
+                    <div class="token-text">
+                        <div class="token-preview">${token.token.substring(0, 25)}...</div>
+                    </div>
+                    <div class="token-actions">
+                        <button class="action-btn copy-btn" onclick="copyToken('${token.token}')">
+                            <i class="material-icons">content_copy</i>
+                            Copy
+                        </button>
+                        <button class="action-btn delete-btn" onclick="deleteToken('${token.key}')">
+                            <i class="material-icons">delete</i>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayTokenList(tokens) {
+            const container = document.getElementById('tokenListContainer');
+            
+            if (tokens.length === 0) {
+                container.innerHTML = '<div class="loading">No tokens in list</div>';
+                return;
+            }
+
+            container.innerHTML = tokens.map((token, index) => `
+                <div class="token-item">
+                    <div class="token-header">
+                        <div class="token-date">
+                            <i class="material-icons">token</i>
+                            Token #${index + 1}
+                        </div>
+                    </div>
+                    <div class="token-text">
+                        <div class="token-preview">${token.substring(0, 25)}...</div>
+                    </div>
+                    <div class="token-actions">
+                        <button class="action-btn copy-btn" onclick="copyToken('${token}')">
+                            <i class="material-icons">content_copy</i>
+                            Copy
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats(count) {
+            document.getElementById('totalTokens').textContent = count;
+            document.getElementById('activeTokens').textContent = count;
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+        }
+
+        async function deleteToken(key) {
+            if (!confirm('Delete this token?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/token/${encodeURIComponent(key)}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showMessage('Token deleted successfully!', 'success');
+                    loadTokens(); // Refresh the list
+                } else {
+                    showMessage('Failed to delete token', 'error');
+                }
+            } catch (error) {
+                showMessage('Error deleting token: ' + error.message, 'error');
+            }
+        }
+
+        async function clearAllTokens() {
+            if (!confirm('Clear ALL tokens? This cannot be undone!')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/tokens/clear', {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showMessage('All tokens cleared!', 'success');
+                    loadTokens(); // Refresh the list
+                } else {
+                    showMessage('Failed to clear tokens', 'error');
+                }
+            } catch (error) {
+                showMessage('Error clearing tokens: ' + error.message, 'error');
+            }
+        }
+
+        function copyToken(token) {
+            navigator.clipboard.writeText(token).then(() => {
+                showMessage('Token copied!', 'success');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = token;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showMessage('Token copied!', 'success');
+            });
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = 'message ' + type;
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+            
+            // Auto-hide messages after 3 seconds
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Notification Modal Functions
+        function showSendNotificationModal() {
+            document.getElementById('notificationModal').style.display = 'block';
+            populateTokenList();
+        }
+
+        function closeNotificationModal() {
+            document.getElementById('notificationModal').style.display = 'none';
+        }
+
+        function populateTokenList() {
+            const tokenListModal = document.getElementById('tokenListModal');
+            tokenListModal.innerHTML = '';
+            
+            currentTokens.forEach((token, index) => {
+                const tokenItem = document.createElement('div');
+                tokenItem.className = 'token-item-modal';
+                tokenItem.innerHTML = `
+                    <input type="checkbox" class="token-checkbox" id="token-${index}" value="${token.token}">
+                    <div class="token-preview-modal">${token.token.substring(0, 25)}...</div>
+                `;
+                tokenListModal.appendChild(tokenItem);
+            });
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAllTokens');
+            const checkboxes = document.querySelectorAll('.token-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+        }
+
+        // Handle notification type change
+        document.querySelectorAll('input[name="notificationType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const specificSection = document.getElementById('specificTokensSection');
+                if (this.value === 'specific') {
+                    specificSection.style.display = 'block';
+                } else {
+                    specificSection.style.display = 'none';
+                }
+            });
+        });
+
+        async function sendNotification() {
+            const title = document.getElementById('notificationTitle').value.trim();
+            const message = document.getElementById('notificationMessage').value.trim();
+            const url = document.getElementById('notificationUrl').value.trim();
+            const image = document.getElementById('notificationImage').value.trim();
+            const notificationType = document.querySelector('input[name="notificationType"]:checked').value;
+
+            if (!title || !message) {
+                showMessage('Please enter title and message', 'error');
+                return;
+            }
+
+            let tokens = [];
+            if (notificationType === 'all') {
+                tokens = currentTokens.map(t => t.token);
+            } else {
+                const selectedCheckboxes = document.querySelectorAll('.token-checkbox:checked');
+                tokens = Array.from(selectedCheckboxes).map(cb => cb.value);
+            }
+
+            if (tokens.length === 0) {
+                showMessage('Please select at least one token', 'error');
+                return;
+            }
+
+            try {
+                showMessage('Sending notification...', 'info');
+                
+                const response = await fetch('/api/send-notification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        tokens: tokens,
+                        title: title,
+                        message: message,
+                        url: url || null,
+                        image: image || null
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(`Notification sent to ${data.sentCount} devices!`, 'success');
+                    closeNotificationModal();
+                } else {
+                    showMessage('Failed to send: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function removeDuplicates() {
+            if (!confirm('Remove duplicate tokens?')) {
+                return;
+            }
+
+            try {
+                showMessage('Removing duplicates...', 'info');
+                
+                const response = await fetch('/api/tokens/remove-duplicates', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(`Removed ${data.duplicatesRemoved} duplicates. ${data.uniqueTokens} tokens remain.`, 'success');
+                    loadTokens(); // Refresh the list
+                } else {
+                    showMessage('Failed: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('notificationModal');
+            if (event.target === modal) {
+                closeNotificationModal();
+            }
+        }
+    </script>
+</body>
+</html>

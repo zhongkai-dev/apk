@@ -1,6 +1,8 @@
 const express = require('express');
 const Redis = require('ioredis');
 const path = require('path');
+const session = require('express-session');
+const bcrypt = require('bcryptjs');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -13,17 +15,73 @@ const redis = new Redis({
     maxRetriesPerRequest: 3
 });
 
+// Session configuration
+app.use(session({
+    secret: 'fcm-token-manager-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        secure: false, // Set to true if using HTTPS
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+}));
+
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// Routes
-app.get('/', (req, res) => {
+// Authentication credentials
+const ADMIN_USERNAME = 'thonewathan-noti';
+const ADMIN_PASSWORD = 'Facai8898@';
+
+// Authentication middleware
+const requireAuth = (req, res, next) => {
+    if (req.session.authenticated) {
+        next();
+    } else {
+        res.redirect('/login');
+    }
+};
+
+// Login route
+app.get('/login', (req, res) => {
+    if (req.session.authenticated) {
+        res.redirect('/');
+    } else {
+        res.sendFile(path.join(__dirname, 'public', 'login.html'));
+    }
+});
+
+// Login POST route
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        req.session.authenticated = true;
+        res.json({ success: true, message: 'Login successful' });
+    } else {
+        res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+});
+
+// Logout route
+app.get('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Error destroying session:', err);
+        }
+        res.redirect('/login');
+    });
+});
+
+// Protected routes
+app.get('/', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // API to save FCM token
-app.post('/save-fcm-token', async (req, res) => {
+app.post('/save-fcm-token', requireAuth, async (req, res) => {
     try {
         const { token, timestamp, expiration } = req.body;
         
@@ -66,7 +124,7 @@ app.post('/save-fcm-token', async (req, res) => {
 });
 
 // API to get all FCM tokens
-app.get('/api/tokens', async (req, res) => {
+app.get('/api/tokens', requireAuth, async (req, res) => {
     try {
         // Get all keys that match fcm_token:*
         const keys = await redis.keys('fcm_token:*');
@@ -98,7 +156,7 @@ app.get('/api/tokens', async (req, res) => {
 });
 
 // API to get token list
-app.get('/api/token-list', async (req, res) => {
+app.get('/api/token-list', requireAuth, async (req, res) => {
     try {
         const tokens = await redis.lrange('fcm_tokens_list', 0, -1);
         res.json({ tokens: tokens, count: tokens.length });
@@ -110,7 +168,7 @@ app.get('/api/token-list', async (req, res) => {
 });
 
 // API to delete a token
-app.delete('/api/token/:key', async (req, res) => {
+app.delete('/api/token/:key', requireAuth, async (req, res) => {
     try {
         const key = req.params.key;
         await redis.del(key);

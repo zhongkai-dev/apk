@@ -435,8 +435,15 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>FCM Token Manager</h1>
-            <p>Manage Firebase Cloud Messaging tokens</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="flex: 1; text-align: center;">
+                    <h1>FCM Token Manager</h1>
+                    <p>Manage Firebase Cloud Messaging tokens</p>
+                </div>
+                <button onclick="logout()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px; border-radius: 6px; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                    <i class="material-icons" style="font-size: 20px;">logout</i>
+                </button>
+            </div>
         </div>
 
         <div class="stats">
@@ -932,6 +939,12 @@
             const modal = document.getElementById('notificationModal');
             if (event.target === modal) {
                 closeNotificationModal();
+            }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/logout';
             }
         }
     </script>

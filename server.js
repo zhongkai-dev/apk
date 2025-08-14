@@ -80,7 +80,7 @@ app.get('/', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// API to save FCM token
+// API to save FCM token (with session auth)
 app.post('/save-fcm-token', requireAuth, async (req, res) => {
     try {
         const { token, timestamp, expiration } = req.body;
@@ -115,6 +115,55 @@ app.post('/save-fcm-token', requireAuth, async (req, res) => {
         await redis.ltrim('fcm_tokens_list', 0, 999); // Keep only last 1000
         
         console.log(`FCM token saved: ${token.substring(0, 20)}...`);
+        res.json({ success: true, message: 'Token saved successfully', duplicate: false });
+        
+    } catch (error) {
+        console.error('Error saving FCM token:', error);
+        res.status(500).json({ error: 'Failed to save token' });
+    }
+});
+
+// API to save FCM token (with API key auth for mobile apps)
+app.post('/api/save-fcm-token', async (req, res) => {
+    try {
+        const { token, timestamp, expiration, apiKey } = req.body;
+        
+        // Simple API key validation
+        const validApiKey = 'AJFZvlgmJBkEFBEYrjimvnVUvkvWlkFB';
+        if (!apiKey || apiKey !== validApiKey) {
+            return res.status(401).json({ error: 'Invalid API key' });
+        }
+        
+        if (!token) {
+            return res.status(400).json({ error: 'Token is required' });
+        }
+
+        // Check if token already exists
+        const existingKeys = await redis.keys('fcm_token:*');
+        let tokenExists = false;
+        
+        for (const key of existingKeys) {
+            const existingToken = await redis.get(key);
+            if (existingToken === token) {
+                tokenExists = true;
+                break;
+            }
+        }
+
+        if (tokenExists) {
+            console.log(`FCM token already exists: ${token.substring(0, 20)}...`);
+            return res.json({ success: true, message: 'Token already exists', duplicate: true });
+        }
+
+        // Save token with timestamp as key
+        const key = `fcm_token:${timestamp || Date.now()}`;
+        await redis.setex(key, expiration || (30 * 24 * 60 * 60), token);
+        
+        // Also add to list for tracking (only if not duplicate)
+        await redis.lpush('fcm_tokens_list', token);
+        await redis.ltrim('fcm_tokens_list', 0, 999); // Keep only last 1000
+        
+        console.log(`FCM token saved via API: ${token.substring(0, 20)}...`);
         res.json({ success: true, message: 'Token saved successfully', duplicate: false });
         
     } catch (error) {

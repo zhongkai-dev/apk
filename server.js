@@ -172,6 +172,56 @@ app.post('/api/save-fcm-token', async (req, res) => {
     }
 });
 
+// API to check for app updates
+app.get('/api/check-update', async (req, res) => {
+    try {
+        const userAgent = req.headers['user-agent'] || '';
+        const isAndroid = userAgent.includes('FanzyShop-Android');
+        
+        if (!isAndroid) {
+            return res.status(400).json({ error: 'Invalid client' });
+        }
+        
+        // Get current app version from request (you can add this as a query parameter)
+        const currentVersion = req.query.version || '1.0';
+        const currentVersionCode = parseInt(req.query.versionCode) || 1;
+        
+        // Define the latest version (you can store this in Redis or a config file)
+        const latestVersion = {
+            version_name: '1.1',
+            version_code: 2,
+            update_available: false,
+            download_url: '',
+            message: 'You are using the latest version!',
+            force_update: false,
+            changelog: [
+                'Bug fixes and performance improvements',
+                'Enhanced FCM token management',
+                'Improved in-app update system'
+            ]
+        };
+        
+        // Check if update is needed
+        if (currentVersionCode < latestVersion.version_code) {
+            latestVersion.update_available = true;
+            latestVersion.download_url = 'https://testing-production-0a66.up.railway.app/downloads/FanzyShop-1.1.apk';
+            latestVersion.message = 'A new version is available with bug fixes and improvements!';
+            
+            // Force update for very old versions (optional)
+            if (currentVersionCode < 1) {
+                latestVersion.force_update = true;
+                latestVersion.message = 'Critical update required for security and performance!';
+            }
+        }
+        
+        res.json(latestVersion);
+        
+    } catch (error) {
+        console.error('Error checking for updates:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // API to get all FCM tokens
 app.get('/api/tokens', requireAuth, async (req, res) => {
     try {

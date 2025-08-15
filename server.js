@@ -207,10 +207,10 @@ app.get('/api/check-update', async (req, res) => {
             latestVersion.download_url = 'https://testing-production-0a66.up.railway.app/downloads/FanzyShop-1.1.apk';
             latestVersion.message = 'A new version is available with bug fixes and improvements!';
             
-            // Force update for very old versions (optional)
-            if (currentVersionCode < 1) {
+            // Force update for older versions (more aggressive)
+            if (currentVersionCode < latestVersion.version_code) {
                 latestVersion.force_update = true;
-                latestVersion.message = 'Critical update required for security and performance!';
+                latestVersion.message = 'Update required! Please install the latest version to continue using the app.';
             }
         }
         
